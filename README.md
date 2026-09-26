@@ -1,7 +1,5 @@
 # KiedyOdpady Home Assistant
 
-![Logo KiedyOdpady](custom_components/kiedyodpady/brand/icon.png)
-
 Integracja pobiera harmonogram odbioru odpadów z publicznego API KiedyOdpady. Miasto, miejscowość, ulica i numer są wybierane z formularzy Home Assistant; dane adresowe i dostępne wdrożenia są pobierane dynamicznie.
 
 ## Instalacja przez HACS
@@ -30,4 +28,4 @@ Sensory daty i typów zawierają atrybut `upcoming_schedule` z harmonogramem zwr
 
 ## Prywatność i łączność
 
-Integracja nie wymaga konta ani klucza API. Łączy się z publicznym API KiedyOdpady oraz publicznym katalogiem wdrożeń mMieszkaniec. Interwał odświeżania konfiguruje użytkownik.
+Integracja nie wymaga konta ani klucza API. Łączy się z publicznym API KiedyOdpady oraz publicznym katalogiem wdrożeń mMieszkaniec.
