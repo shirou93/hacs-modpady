@@ -37,7 +37,8 @@
       "next_collection": {"name": "Najbliższy odbiór"},
       "next_collection_types": {"name": "Odpady przy najbliższym odbiorze"},
       "upcoming_collections": {"name": "Odbiory w ciągu 60 dni"},
-      "days_until_collection": {"name": "Dni do najbliższego odbioru"}
+      "days_until_collection": {"name": "Dni do najbliższego odbioru"},
+      "collection_by_type": {"name": "Odbiór {waste_type}"}
     }
   }
 }
