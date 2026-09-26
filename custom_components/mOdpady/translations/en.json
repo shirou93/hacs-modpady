@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "city": {"title": "City or municipality", "description": "Choose an active mOdpady deployment.", "data": {"city": "City"}},
+      "locality": {"title": "Locality", "description": "Choose a locality in {city}.", "data": {"locality_id": "Locality"}},
+      "street": {"title": "Street", "description": "Choose a street.", "data": {"street_id": "Street"}},
+      "address": {"title": "Building number", "description": "Choose a number or enter it if the API does not provide an address list.", "data": {"address": "Building number"}},
+      "interval": {"title": "Refresh interval", "description": "Choose how often, in minutes, the integration should retrieve the schedule.", "data": {"update_interval": "Refresh interval (minutes)"}}
+    },
+    "error": {
+      "cannot_connect": "Could not retrieve data. Check the connection and try again.",
+      "invalid_selection": "This option is no longer available. Refresh and select again.",
+      "invalid_address": "Enter a building number.",
+      "no_deployments": "No active mOdpady deployments were found.",
+      "no_localities": "No localities were returned for this deployment."
+    },
+    "abort": {"already_configured": "This address is already configured."}
+  },
+  "options": {
+    "step": {
+      "init": {"title": "mOdpady settings", "description": "Change the refresh interval or choose to reconfigure the address in the next steps.", "data": {"update_interval": "Refresh interval (minutes)", "change_address": "Change configured address"}},
+      "city": {"title": "City or municipality", "description": "Choose an mOdpady deployment.", "data": {"city": "City"}},
+      "locality": {"title": "Locality", "description": "Choose a locality in {city}.", "data": {"locality_id": "Locality"}},
+      "street": {"title": "Street", "description": "Choose a street.", "data": {"street_id": "Street"}},
+      "address": {"title": "Building number", "description": "Choose a number or enter it if the API does not provide an address list.", "data": {"address": "Building number"}}
+    },
+    "error": {
+      "cannot_connect": "Could not retrieve data. Check the connection and try again.",
+      "invalid_selection": "This option is no longer available. Refresh and select again.",
+      "invalid_address": "Enter a building number.",
+      "no_deployments": "No active mOdpady deployments were found.",
+      "no_localities": "No localities were returned for this deployment."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_collection": {"name": "Next collection"},
+      "next_collection_types": {"name": "Waste types at next collection"},
+      "upcoming_collections": {"name": "Collection days in 60 days"},
+      "days_until_collection": {"name": "Days until next collection"}
+    }
+  }
+}

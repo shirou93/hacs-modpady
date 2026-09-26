@@ -1,0 +1,11 @@
+{
+  "domain": "modpady",
+  "name": "mOdpady",
+  "codeowners": ["@shirou93"],
+  "config_flow": true,
+  "documentation": "https://mmieszkaniec.pl/produkt/modpady/",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "1.0.0",
+  "integration_type": "service"
+}

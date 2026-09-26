@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "city": {"title": "Miasto lub gmina", "description": "Wybierz aktywne wdrożenie modułu mOdpady.", "data": {"city": "Miasto"}},
+      "locality": {"title": "Miejscowość", "description": "Wybierz miejscowość w: {city}.", "data": {"locality_id": "Miejscowość"}},
+      "street": {"title": "Ulica", "description": "Wybierz ulicę.", "data": {"street_id": "Ulica"}},
+      "address": {"title": "Numer budynku", "description": "Wybierz numer z listy albo wpisz go, jeśli API nie udostępnia listy adresów.", "data": {"address": "Numer budynku"}},
+      "interval": {"title": "Częstotliwość odświeżania", "description": "Wybierz, co ile minut integracja ma pobierać harmonogram.", "data": {"update_interval": "Odświeżanie (minuty)"}}
+    },
+    "error": {
+      "cannot_connect": "Nie udało się pobrać danych. Sprawdź połączenie i spróbuj ponownie.",
+      "invalid_selection": "Wybrana pozycja nie jest już dostępna. Odśwież formularz i wybierz ponownie.",
+      "invalid_address": "Wpisz numer budynku.",
+      "no_deployments": "Nie znaleziono aktywnych wdrożeń mOdpady.",
+      "no_localities": "API nie zwróciło miejscowości dla tego wdrożenia."
+    },
+    "abort": {"already_configured": "Ten adres jest już skonfigurowany."}
+  },
+  "options": {
+    "step": {
+      "init": {"title": "Ustawienia mOdpady", "description": "Zmień częstotliwość odświeżania lub włącz zmianę adresu w kolejnych krokach.", "data": {"update_interval": "Odświeżanie (minuty)", "change_address": "Zmień skonfigurowany adres"}},
+      "city": {"title": "Miasto lub gmina", "description": "Wybierz nowe wdrożenie mOdpady.", "data": {"city": "Miasto"}},
+      "locality": {"title": "Miejscowość", "description": "Wybierz miejscowość w: {city}.", "data": {"locality_id": "Miejscowość"}},
+      "street": {"title": "Ulica", "description": "Wybierz ulicę.", "data": {"street_id": "Ulica"}},
+      "address": {"title": "Numer budynku", "description": "Wybierz numer z listy albo wpisz go, jeśli API nie udostępnia listy adresów.", "data": {"address": "Numer budynku"}}
+    },
+    "error": {
+      "cannot_connect": "Nie udało się pobrać danych. Sprawdź połączenie i spróbuj ponownie.",
+      "invalid_selection": "Wybrana pozycja nie jest już dostępna. Odśwież formularz i wybierz ponownie.",
+      "invalid_address": "Wpisz numer budynku.",
+      "no_deployments": "Nie znaleziono aktywnych wdrożeń mOdpady.",
+      "no_localities": "API nie zwróciło miejscowości dla tego wdrożenia."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_collection": {"name": "Najbliższy odbiór"},
+      "next_collection_types": {"name": "Odpady przy najbliższym odbiorze"},
+      "upcoming_collections": {"name": "Odbiory w ciągu 60 dni"},
+      "days_until_collection": {"name": "Dni do najbliższego odbioru"}
+    }
+  }
+}
