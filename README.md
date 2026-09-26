@@ -26,6 +26,9 @@ Dla skonfigurowanego adresu integracja tworzy:
 - `sensor.*_odbiory_w_ciagu_60_dni` — liczbę dni odbioru w pobranym harmonogramie;
 - `sensor.*_dni_do_najblizszego_odbioru` — liczbę dni do najbliższego odbioru.
 
+<img width="429" height="614" alt="image" src="https://github.com/user-attachments/assets/7599f5a4-4536-4066-935c-a028ff460448" />
+
+
 Sensory daty i typów zawierają atrybut `upcoming_schedule` z harmonogramem zwróconym przez API.
 
 ## Prywatność
