@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.helpers import selector
+from homeassistant.helpers import entity_registry as er, selector
+from homeassistant.util import slugify
 
 from .api import (
     ModpadyApiError,
@@ -54,6 +55,52 @@ def _interval_schema(default: int = DEFAULT_SCAN_INTERVAL) -> vol.Schema:
             )
         }
     )
+
+
+def _address_name(settings: dict[str, str]) -> str:
+    return " ".join(
+        part
+        for part in (
+            settings.get("locality_name", settings["locality_id"]),
+            settings.get("street_name"),
+            settings["address"],
+        )
+        if part
+    )
+
+
+def _rename_address_entities(hass, config_entry, old_name: str, new_name: str) -> None:
+    old_prefix = slugify(old_name)
+    new_prefix = slugify(new_name)
+    if old_prefix == new_prefix:
+        return
+
+    registry = er.async_get(hass)
+    entities = [
+        entity
+        for entity in registry.entities.values()
+        if entity.config_entry_id == config_entry.entry_id
+        and entity.platform == DOMAIN
+    ]
+    entities_to_rename = [
+        entity
+        for entity in entities
+        if entity.entity_id.partition(".")[2].startswith(f"{old_prefix}_")
+    ]
+    occupied_entity_ids = set(registry.entities)
+    old_entity_ids = {entity.entity_id for entity in entities_to_rename}
+    for entity in entities_to_rename:
+        object_id = entity.entity_id.partition(".")[2]
+        suffix = object_id[len(old_prefix) + 1 :]
+        new_entity_id = f"{entity.domain}.{new_prefix}_{suffix}"
+        if new_entity_id in occupied_entity_ids - old_entity_ids:
+            continue
+        registry.async_update_entity(
+            entity.entity_id,
+            new_entity_id=new_entity_id,
+        )
+        occupied_entity_ids.discard(entity.entity_id)
+        occupied_entity_ids.add(new_entity_id)
 
 
 class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -401,10 +448,20 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
             else:
                 self.selection["address"] = address
                 self.selection["update_interval"] = self.update_interval
+                title = f"{self.selection['locality_name']} {address}"
+                old_name = _address_name(self.config_entry.data)
+                new_name = _address_name(self.selection)
+                _rename_address_entities(
+                    self.hass,
+                    self.config_entry,
+                    old_name,
+                    new_name,
+                )
                 self.hass.config_entries.async_update_entry(
                     self.config_entry,
                     data={**self.config_entry.data, **self.selection},
                     options={**self.config_entry.options, "update_interval": self.update_interval},
+                    title=title,
                 )
                 return self.async_create_entry(
                     title="",
