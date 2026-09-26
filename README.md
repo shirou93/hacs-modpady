@@ -28,6 +28,6 @@ Dla skonfigurowanego adresu integracja tworzy:
 
 Sensory daty i typów zawierają atrybut `upcoming_schedule` z harmonogramem zwróconym przez API.
 
-## Prywatność i łączność
+## Prywatność
 
-Integracja nie wymaga konta ani klucza API. Łączy się z publicznym API KiedyOdpady oraz publicznym katalogiem wdrożeń mMieszkaniec.
+Integracja nie wymaga konta ani klucza API. Łączy się z publicznym API mOdpady.
