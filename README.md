@@ -1,4 +1,4 @@
-# KiedyOdpady Home Assistant
+# mOdpady Home Assistant
 
 Integracja pobiera harmonogram odbioru odpadów z publicznego API mOdpady. Miasto, miejscowość, ulica i numer są wybierane z formularzy Home Assistant; dane adresowe i dostępne wdrożenia są pobierane dynamicznie.
 
