@@ -1,6 +1,6 @@
 # mOdpady Home Assistant
 
-Integracja pobiera harmonogram odbioru odpadów z publicznego API mOdpady. Miasto, miejscowość, ulica i numer są wybierane z formularzy Home Assistant; dane adresowe i dostępne wdrożenia są pobierane dynamicznie.
+Integracja pobiera harmonogram odbioru odpadów z publicznego API mOdpady. Miasto, miejscowość, ulica i numer są wybierane z listy w Home Assistant; dane adresowe i dostępne wdrożenia są pobierane dynamicznie.
 
 https://mmieszkaniec.pl/produkt/modpady/
 
