@@ -7,9 +7,9 @@ https://mmieszkaniec.pl/produkt/modpady/
 ## Instalacja przez HACS
 
 1. Dodaj repozytorium zawierające ten projekt w HACS jako repozytorium niestandardowe typu **Integration**.
-2. Zainstaluj **KiedyOdpady** i uruchom ponownie Home Assistant.
+2. Zainstaluj **mOdpady** i uruchom ponownie Home Assistant.
 3. Otwórz **Ustawienia → Urządzenia i usługi → Dodaj integrację**.
-4. Wyszukaj **KiedyOdpady** i wybierz kolejno miasto, miejscowość, ulicę, numer budynku oraz częstotliwość odświeżania.
+4. Wyszukaj **mOdpady** i wybierz kolejno miasto, miejscowość, ulicę, numer budynku oraz częstotliwość odświeżania.
 
 ## Konfiguracja
 

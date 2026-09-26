@@ -40,6 +40,22 @@ def _options(items: list[dict], *, id_key: str = "id") -> list[dict[str, str]]:
     ]
 
 
+def _interval_schema(default: int = DEFAULT_SCAN_INTERVAL) -> vol.Schema:
+    return vol.Schema(
+        {
+            vol.Required("update_interval", default=default): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=MIN_SCAN_INTERVAL,
+                    max=MAX_SCAN_INTERVAL,
+                    step=5,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="min",
+                )
+            )
+        }
+    )
+
+
 class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Configure a city address through successive dropdowns."""
 
@@ -63,7 +79,8 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             selected = next(
-                (city for city in cities if city["value"] == user_input["city"]), None
+                (city for city in cities if city["value"] == user_input["city"]),
+                None,
             )
             if selected is None:
                 errors["base"] = "invalid_selection"
@@ -90,14 +107,20 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             locality = next(
-                (item for item in localities if str(item["id"]) == user_input["locality_id"]),
+                (
+                    item
+                    for item in localities
+                    if str(item["id"]) == user_input["locality_id"]
+                ),
                 None,
             )
             if locality is None:
                 errors["base"] = "invalid_selection"
             else:
                 self.selection["locality_id"] = str(locality["id"])
-                self.selection["locality_name"] = locality.get("extendedName") or locality["name"]
+                self.selection["locality_name"] = (
+                    locality.get("extendedName") or locality["name"]
+                )
                 return await self.async_step_street()
 
         return self.async_show_form(
@@ -132,7 +155,9 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_selection"
             else:
                 self.selection["street_id"] = str(street["id"])
-                self.selection["street_name"] = street.get("extendedName") or street["name"]
+                self.selection["street_name"] = (
+                    street.get("extendedName") or street["name"]
+                )
                 return await self.async_step_address()
 
         return self.async_show_form(
@@ -143,7 +168,7 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_address(self, user_input=None):
         errors = {}
-        address_options = []
+        address_options: list[dict[str, str]] = []
         if self.selection.get("street_id"):
             try:
                 addresses = await async_get_addresses(
@@ -153,7 +178,8 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self.selection["street_id"],
                 )
                 address_options = [
-                    {"value": str(address), "label": str(address)} for address in addresses
+                    {"value": str(address), "label": str(address)}
+                    for address in addresses
                 ]
             except ModpadyApiError:
                 errors["base"] = "cannot_connect"
@@ -162,7 +188,9 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             address = user_input["address"].strip()
             if not address:
                 errors["base"] = "invalid_address"
-            elif address_options and address not in {item["value"] for item in address_options}:
+            elif address_options and address not in {
+                item["value"] for item in address_options
+            }:
                 errors["base"] = "invalid_selection"
             else:
                 self.selection["address"] = address
@@ -176,11 +204,7 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.selection["title"] = f"{self.selection['locality_name']} {address}"
                 return await self.async_step_interval()
 
-        address_schema = (
-            _select(address_options)
-            if address_options
-            else selector.TextSelector()
-        )
+        address_schema = _select(address_options) if address_options else selector.TextSelector()
         return self.async_show_form(
             step_id="address",
             data_schema=vol.Schema({vol.Required("address"): address_schema}),
@@ -195,21 +219,7 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="interval",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        "update_interval", default=DEFAULT_SCAN_INTERVAL
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=MIN_SCAN_INTERVAL,
-                            max=MAX_SCAN_INTERVAL,
-                            step=5,
-                            mode=selector.NumberSelectorMode.BOX,
-                            unit_of_measurement="min",
-                        )
-                    )
-                }
-            ),
+            data_schema=_interval_schema(),
         )
 
     @staticmethod
@@ -221,10 +231,11 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
     """Edit polling interval or reconfigure the selected address."""
 
     def __init__(self, config_entry) -> None:
-        self.selection: dict[str, str] = {}
+        self.selection: dict[str, str] = dict(config_entry.data)
         self.update_interval = int(
             config_entry.options.get(
-                "update_interval", DEFAULT_SCAN_INTERVAL
+                "update_interval",
+                config_entry.data.get("update_interval", DEFAULT_SCAN_INTERVAL),
             )
         )
 
@@ -233,24 +244,28 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
             self.update_interval = int(user_input["update_interval"])
             if user_input["change_address"]:
                 return await self.async_step_city()
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                options={**self.config_entry.options, "update_interval": self.update_interval},
+            )
             return self.async_create_entry(
                 title="",
-                data={**self.config_entry.options, "update_interval": self.update_interval},
+                data={"update_interval": self.update_interval},
             )
 
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        "update_interval", default=self.update_interval
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=MIN_SCAN_INTERVAL,
-                            max=MAX_SCAN_INTERVAL,
-                            step=5,
-                            mode=selector.NumberSelectorMode.BOX,
-                            unit_of_measurement="min",
+                    vol.Required("update_interval", default=self.update_interval): (
+                        selector.NumberSelector(
+                            selector.NumberSelectorConfig(
+                                min=MIN_SCAN_INTERVAL,
+                                max=MAX_SCAN_INTERVAL,
+                                step=5,
+                                mode=selector.NumberSelectorMode.BOX,
+                                unit_of_measurement="min",
+                            )
                         )
                     ),
                     vol.Required("change_address", default=False): selector.BooleanSelector(),
@@ -270,7 +285,8 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
 
         if user_input is not None:
             selected = next(
-                (city for city in cities if city["value"] == user_input["city"]), None
+                (city for city in cities if city["value"] == user_input["city"]),
+                None,
             )
             if selected is None:
                 errors["base"] = "invalid_selection"
@@ -297,14 +313,20 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
 
         if user_input is not None:
             locality = next(
-                (item for item in localities if str(item["id"]) == user_input["locality_id"]),
+                (
+                    item
+                    for item in localities
+                    if str(item["id"]) == user_input["locality_id"]
+                ),
                 None,
             )
             if locality is None:
                 errors["base"] = "invalid_selection"
             else:
                 self.selection["locality_id"] = str(locality["id"])
-                self.selection["locality_name"] = locality.get("extendedName") or locality["name"]
+                self.selection["locality_name"] = (
+                    locality.get("extendedName") or locality["name"]
+                )
                 return await self.async_step_street()
 
         return self.async_show_form(
@@ -339,7 +361,9 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
                 errors["base"] = "invalid_selection"
             else:
                 self.selection["street_id"] = str(street["id"])
-                self.selection["street_name"] = street.get("extendedName") or street["name"]
+                self.selection["street_name"] = (
+                    street.get("extendedName") or street["name"]
+                )
                 return await self.async_step_address()
 
         return self.async_show_form(
@@ -350,7 +374,7 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_address(self, user_input=None):
         errors = {}
-        address_options = []
+        address_options: list[dict[str, str]] = []
         if self.selection.get("street_id"):
             try:
                 addresses = await async_get_addresses(
@@ -360,7 +384,8 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
                     self.selection["street_id"],
                 )
                 address_options = [
-                    {"value": str(address), "label": str(address)} for address in addresses
+                    {"value": str(address), "label": str(address)}
+                    for address in addresses
                 ]
             except ModpadyApiError:
                 errors["base"] = "cannot_connect"
@@ -369,17 +394,21 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
             address = user_input["address"].strip()
             if not address:
                 errors["base"] = "invalid_address"
-            elif address_options and address not in {item["value"] for item in address_options}:
+            elif address_options and address not in {
+                item["value"] for item in address_options
+            }:
                 errors["base"] = "invalid_selection"
             else:
                 self.selection["address"] = address
+                self.selection["update_interval"] = self.update_interval
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry,
+                    data={**self.config_entry.data, **self.selection},
+                    options={**self.config_entry.options, "update_interval": self.update_interval},
+                )
                 return self.async_create_entry(
                     title="",
-                    data={
-                        **self.config_entry.options,
-                        **self.selection,
-                        "update_interval": self.update_interval,
-                    },
+                    data={"update_interval": self.update_interval},
                 )
 
         address_schema = _select(address_options) if address_options else selector.TextSelector()
