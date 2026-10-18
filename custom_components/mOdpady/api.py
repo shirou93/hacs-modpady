@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import timedelta
 from urllib.parse import urlsplit
 
 import aiohttp
@@ -26,7 +26,9 @@ def _headers(city: str) -> dict[str, str]:
 async def _get_json(hass, url: str, *, headers: dict[str, str] | None = None):
     session = async_get_clientsession(hass)
     try:
-        async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as response:
+        async with session.get(
+            url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+        ) as response:
             response.raise_for_status()
             return await response.json()
     except (aiohttp.ClientError, TimeoutError, ValueError) as err:
@@ -59,12 +61,14 @@ async def async_get_cities(hass) -> list[dict[str, str]]:
 
 
 async def async_get_localities(hass, city: str) -> list[dict]:
+    """Return localities for the given city."""
     return await _get_json(
         hass, f"{API_BASE}/territory/localities", headers=_headers(city)
     )
 
 
 async def async_get_streets(hass, city: str, locality_id: str) -> list[dict]:
+    """Return streets for the given city and locality_id."""
     return await _get_json(
         hass,
         f"{API_BASE}/territory/localities/{locality_id}/streets",
@@ -72,7 +76,10 @@ async def async_get_streets(hass, city: str, locality_id: str) -> list[dict]:
     )
 
 
-async def async_get_addresses(hass, city: str, locality_id: str, street_id: str) -> list[str]:
+async def async_get_addresses(
+    hass, city: str, locality_id: str, street_id: str
+) -> list[str]:
+    """Return addresses for the given street."""
     return await _get_json(
         hass,
         f"{API_BASE}/territory/localities/{locality_id}/addresses/{street_id}",
@@ -80,8 +87,9 @@ async def async_get_addresses(hass, city: str, locality_id: str, street_id: str)
     )
 
 
-async def async_get_schedule(hass, city: str, locality_id: str, street_id: str, address: str) -> dict:
-    """Fetch the next 60 days and resolve waste type identifiers."""
+async def _fetch_occurrences(
+    hass, city: str, locality_id: str, street_id: str, address: str
+) -> list[dict]:
     today = dt_util.now().date()
     payload = {
         "from": today.isoformat(),
@@ -106,10 +114,16 @@ async def async_get_schedule(hass, city: str, locality_id: str, street_id: str, 
         ) as response:
             response.raise_for_status()
             result = await response.json()
+            return result.get("occurrences", [])
     except (aiohttp.ClientError, TimeoutError, ValueError) as err:
         raise ModpadyApiError(str(err)) from err
 
-    occurrences = result.get("occurrences", [])
+
+async def async_get_schedule(
+    hass, city: str, locality_id: str, street_id: str, address: str
+) -> dict:
+    """Fetch the next 60 days and resolve waste type identifiers."""
+    occurrences = await _fetch_occurrences(hass, city, locality_id, street_id, address)
     if not occurrences:
         return {"schedule": []}
 
@@ -130,4 +144,3 @@ async def async_get_schedule(hass, city: str, locality_id: str, street_id: str, 
             for pickup_date, names in sorted(by_date.items())
         ]
     }
-

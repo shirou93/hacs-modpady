@@ -4,22 +4,14 @@ from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.helpers import entity_registry as er, selector
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import selector
 from homeassistant.util import slugify
 
-from .api import (
-    ModpadyApiError,
-    async_get_addresses,
-    async_get_cities,
-    async_get_localities,
-    async_get_streets,
-)
-from .const import (
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    MAX_SCAN_INTERVAL,
-    MIN_SCAN_INTERVAL,
-)
+from .api import (ModpadyApiError, async_get_addresses, async_get_cities,
+                  async_get_localities, async_get_streets)
+from .const import (DEFAULT_SCAN_INTERVAL, DOMAIN, MAX_SCAN_INTERVAL,
+                    MIN_SCAN_INTERVAL)
 
 
 def _select(options: list[dict[str, str]]) -> selector.SelectSelector:
@@ -79,8 +71,7 @@ def _rename_address_entities(hass, config_entry, old_name: str, new_name: str) -
     entities = [
         entity
         for entity in registry.entities.values()
-        if entity.config_entry_id == config_entry.entry_id
-        and entity.platform == DOMAIN
+        if entity.config_entry_id == config_entry.entry_id and entity.platform == DOMAIN
     ]
     entities_to_rename = [
         entity
@@ -91,7 +82,7 @@ def _rename_address_entities(hass, config_entry, old_name: str, new_name: str) -
     old_entity_ids = {entity.entity_id for entity in entities_to_rename}
     for entity in entities_to_rename:
         object_id = entity.entity_id.partition(".")[2]
-        suffix = object_id[len(old_prefix) + 1 :]
+        suffix = object_id[len(old_prefix) + 1:]
         new_entity_id = f"{entity.domain}.{new_prefix}_{suffix}"
         if new_entity_id in occupied_entity_ids - old_entity_ids:
             continue
@@ -112,9 +103,11 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.selection: dict[str, str] = {}
 
     async def async_step_user(self, user_input=None):
+        """Handle the initial step."""
         return await self.async_step_city(user_input)
 
     async def async_step_city(self, user_input=None):
+        """Handle the city step."""
         errors = {}
         try:
             cities = await async_get_cities(self.hass)
@@ -143,6 +136,7 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_locality(self, user_input=None):
+        """Handle the locality step."""
         errors = {}
         try:
             localities = await async_get_localities(self.hass, self.selection["city"])
@@ -180,6 +174,7 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_street(self, user_input=None):
+        """Handle the street step."""
         errors = {}
         try:
             streets = await async_get_streets(
@@ -195,7 +190,11 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             street = next(
-                (item for item in streets if str(item["id"]) == user_input["street_id"]),
+                (
+                    item
+                    for item in streets
+                    if str(item["id"]) == user_input["street_id"]
+                ),
                 None,
             )
             if street is None:
@@ -209,11 +208,14 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="street",
-            data_schema=vol.Schema({vol.Required("street_id"): _select(_options(streets))}),
+            data_schema=vol.Schema(
+                {vol.Required("street_id"): _select(_options(streets))}
+            ),
             errors=errors,
         )
 
     async def async_step_address(self, user_input=None):
+        """Handle the address step."""
         errors = {}
         address_options: list[dict[str, str]] = []
         if self.selection.get("street_id"):
@@ -251,7 +253,9 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.selection["title"] = f"{self.selection['locality_name']} {address}"
                 return await self.async_step_interval()
 
-        address_schema = _select(address_options) if address_options else selector.TextSelector()
+        address_schema = (
+            _select(address_options) if address_options else selector.TextSelector()
+        )
         return self.async_show_form(
             step_id="address",
             data_schema=vol.Schema({vol.Required("address"): address_schema}),
@@ -259,6 +263,7 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_interval(self, user_input=None):
+        """Handle the interval step."""
         if user_input is not None:
             self.selection["update_interval"] = int(user_input["update_interval"])
             title = self.selection.pop("title")
@@ -271,6 +276,7 @@ class ModpadyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
         return ModpadyOptionsFlow(config_entry)
 
 
@@ -287,13 +293,17 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def async_step_init(self, user_input=None):
+        """Handle the initial options step."""
         if user_input is not None:
             self.update_interval = int(user_input["update_interval"])
             if user_input["change_address"]:
                 return await self.async_step_city()
             self.hass.config_entries.async_update_entry(
                 self.config_entry,
-                options={**self.config_entry.options, "update_interval": self.update_interval},
+                options={
+                    **self.config_entry.options,
+                    "update_interval": self.update_interval,
+                },
             )
             return self.async_create_entry(
                 title="",
@@ -315,12 +325,15 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
                             )
                         )
                     ),
-                    vol.Required("change_address", default=False): selector.BooleanSelector(),
+                    vol.Required(
+                        "change_address", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
         )
 
     async def async_step_city(self, user_input=None):
+        """Handle the city step."""
         errors = {}
         try:
             cities = await async_get_cities(self.hass)
@@ -349,6 +362,7 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def async_step_locality(self, user_input=None):
+        """Handle the locality step."""
         errors = {}
         try:
             localities = await async_get_localities(self.hass, self.selection["city"])
@@ -386,6 +400,7 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def async_step_street(self, user_input=None):
+        """Handle the street step."""
         errors = {}
         try:
             streets = await async_get_streets(
@@ -401,7 +416,11 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
 
         if user_input is not None:
             street = next(
-                (item for item in streets if str(item["id"]) == user_input["street_id"]),
+                (
+                    item
+                    for item in streets
+                    if str(item["id"]) == user_input["street_id"]
+                ),
                 None,
             )
             if street is None:
@@ -415,11 +434,14 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="street",
-            data_schema=vol.Schema({vol.Required("street_id"): _select(_options(streets))}),
+            data_schema=vol.Schema(
+                {vol.Required("street_id"): _select(_options(streets))}
+            ),
             errors=errors,
         )
 
     async def async_step_address(self, user_input=None):
+        """Handle the address step."""
         errors = {}
         address_options: list[dict[str, str]] = []
         if self.selection.get("street_id"):
@@ -460,7 +482,10 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
                 self.hass.config_entries.async_update_entry(
                     self.config_entry,
                     data={**self.config_entry.data, **self.selection},
-                    options={**self.config_entry.options, "update_interval": self.update_interval},
+                    options={
+                        **self.config_entry.options,
+                        "update_interval": self.update_interval,
+                    },
                     title=title,
                 )
                 return self.async_create_entry(
@@ -468,10 +493,11 @@ class ModpadyOptionsFlow(config_entries.OptionsFlow):
                     data={"update_interval": self.update_interval},
                 )
 
-        address_schema = _select(address_options) if address_options else selector.TextSelector()
+        address_schema = (
+            _select(address_options) if address_options else selector.TextSelector()
+        )
         return self.async_show_form(
             step_id="address",
             data_schema=vol.Schema({vol.Required("address"): address_schema}),
             errors=errors,
         )
-

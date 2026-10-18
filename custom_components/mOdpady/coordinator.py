@@ -7,7 +7,8 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
+                                                      UpdateFailed)
 
 from .api import ModpadyApiError, async_get_schedule
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
@@ -48,4 +49,3 @@ class ModpadyCoordinator(DataUpdateCoordinator[dict]):
             )
         except ModpadyApiError as err:
             raise UpdateFailed(f"Nie można pobrać harmonogramu: {err}") from err
-

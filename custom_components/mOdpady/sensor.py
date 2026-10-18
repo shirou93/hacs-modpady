@@ -4,23 +4,19 @@ from __future__ import annotations
 
 from datetime import date
 
-from homeassistant.components.sensor import (
-    SensorDeviceClass,
-    SensorEntity,
-    SensorEntityDescription,
-    SensorStateClass,
-)
+from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
+                                             SensorEntityDescription,
+                                             SensorStateClass)
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import ModpadyCoordinator
-
 
 DESCRIPTIONS = (
     SensorEntityDescription(
@@ -81,10 +77,11 @@ def _icon_for_waste_type(waste_type: str) -> str:
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    _hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Set up mOdpady sensor platform."""
     coordinator: ModpadyCoordinator = entry.runtime_data
     async_add_entities(
         ModpadySensor(coordinator, entry, description)
@@ -163,6 +160,7 @@ class ModpadySensor(CoordinatorEntity[ModpadyCoordinator], SensorEntity):
 
     @property
     def native_value(self):
+        """Return the state of the sensor."""
         schedule = self.coordinator.data.get("schedule", [])
         key = self.entity_description.key
         if key == "next_collection":
@@ -172,18 +170,27 @@ class ModpadySensor(CoordinatorEntity[ModpadyCoordinator], SensorEntity):
         if key == "upcoming_collections":
             return len(schedule)
         if key == "days_until_collection":
-            return (date.fromisoformat(schedule[0]["date"]) - dt_util.now().date()).days if schedule else None
+            return (
+                (date.fromisoformat(schedule[0]["date"]) - dt_util.now().date()).days
+                if schedule
+                else None
+            )
         if key == "collection_by_type" and self.waste_type:
             matching_dates = [
                 date.fromisoformat(item["date"])
                 for item in schedule
                 if self.waste_type in item.get("waste_types", [])
             ]
-            return (min(matching_dates) - dt_util.now().date()).days if matching_dates else None
+            return (
+                (min(matching_dates) - dt_util.now().date()).days
+                if matching_dates
+                else None
+            )
         return None
 
     @property
     def extra_state_attributes(self) -> dict:
+        """Return extra state attributes."""
         settings = self.coordinator.settings
         attributes = {
             "city": settings.get("city_name", settings["city"]),
@@ -200,10 +207,10 @@ class ModpadySensor(CoordinatorEntity[ModpadyCoordinator], SensorEntity):
 
     @property
     def native_value_date(self) -> str | None:
+        """Return the native value date."""
         if not self.waste_type:
             return None
         for item in self.coordinator.data.get("schedule", []):
             if self.waste_type in item.get("waste_types", []):
                 return item["date"]
         return None
-
