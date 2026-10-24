@@ -93,7 +93,7 @@ async def _fetch_occurrences(
     today = dt_util.now().date()
     payload = {
         "from": today.isoformat(),
-        "to": (today + timedelta(days=60)).isoformat(),
+        "to": (today + timedelta(days=180)).isoformat(),
         "queries": [
             {
                 "localityId": locality_id,
@@ -122,7 +122,7 @@ async def _fetch_occurrences(
 async def async_get_schedule(
     hass, city: str, locality_id: str, street_id: str, address: str
 ) -> dict:
-    """Fetch the next 60 days and resolve waste type identifiers."""
+    """Fetch the next 180 days and resolve waste type identifiers."""
     occurrences = await _fetch_occurrences(hass, city, locality_id, street_id, address)
     if not occurrences:
         return {"schedule": []}
