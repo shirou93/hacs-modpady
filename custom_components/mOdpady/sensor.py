@@ -64,6 +64,7 @@ def _icon_for_waste_type(waste_type: str) -> str:
         (("elektro", "electrical", "bater", "battery"), "mdi:lightning-bolt"),
         (("niebezpiecz", "hazard", "chemic", "lek", "medical"), "mdi:flask-outline"),
         (("popio", "ash"), "mdi:fire"),
+        (("choink",), "mdi:pine-tree"),
         (("zielon", "gałęz", "galaz", "branch", "garden"), "mdi:tree"),
     )
     return next(
